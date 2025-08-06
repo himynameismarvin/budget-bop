@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 
 interface CategorySuggestion {
   name: string

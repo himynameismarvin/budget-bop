@@ -87,6 +87,13 @@ export default function ImportPage() {
     }
   };
 
+  const sampleData = `Date,Description,Amount,Account
+2024-01-15,WALMART SUPERCENTER,-125.43,Checking
+2024-01-16,STARBUCKS COFFEE,-4.85,Credit Card
+2024-01-17,PAYROLL DEPOSIT,2500.00,Checking
+2024-01-18,SHELL GAS STATION,-45.20,Credit Card
+2024-01-19,AMAZON PURCHASE,-89.99,Credit Card`;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -97,104 +104,98 @@ export default function ImportPage() {
 
       {/* Progress Steps */}
       <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              {(['paste', 'map', 'categorize', 'review'] as ImportStep[]).map((step, index) => {
-                const Icon = getStepIcon(step);
-                const isActive = currentStep === step;
-                const isCompleted = (['paste', 'map', 'categorize', 'review'] as ImportStep[]).indexOf(currentStep) > index;
-                
-                return (
-                  <div key={step} className="flex items-center">
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                      isActive ? 'bg-blue-100 text-blue-700' :
-                      isCompleted ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-500'
-                    }`}>
-                      <Icon className="h-4 w-4" />
-                      <span className="font-medium">{getStepTitle(step)}</span>
-                    </div>
-                    {index < 3 && (
-                      <ArrowRight className="h-4 w-4 text-gray-400 mx-2" />
-                    )}
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            {(['paste', 'map', 'categorize', 'review'] as ImportStep[]).map((step, index) => {
+              const Icon = getStepIcon(step);
+              const isActive = currentStep === step;
+              const isCompleted = (['paste', 'map', 'categorize', 'review'] as ImportStep[]).indexOf(currentStep) > index;
+              
+              return (
+                <div key={step} className="flex items-center">
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                    isActive ? 'bg-blue-100 text-blue-700' :
+                    isCompleted ? 'bg-green-100 text-green-700' :
+                    'bg-gray-100 text-gray-500'
+                  }`}>
+                    <Icon className="h-4 w-4" />
+                    <span className="font-medium">{getStepTitle(step)}</span>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Step Content */}
-        {currentStep === 'paste' && (
-          <ClipboardImport onDataParsed={handleDataParsed} />
-        )}
-
-        {currentStep === 'map' && parseResult && (
-          <ColumnMapper
-            headers={parseResult.headers}
-            sampleRows={parseResult.rows.slice(0, 5)}
-            onMappingComplete={handleMappingComplete}
-          />
-        )}
-
-        {currentStep === 'categorize' && hashedTransactions.length > 0 && (
-          <RememberCategorization
-            transactions={hashedTransactions}
-            categories={sampleCategories}
-            onCategorizationComplete={handleCategorizationComplete}
-          />
-        )}
-
-        {currentStep === 'review' && finalTransactions.length > 0 && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Import Complete!</CardTitle>
-                <CardDescription>
-                  Review your {finalTransactions.length} imported transactions below.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <Button onClick={resetImport} variant="outline">
-                    Import More
-                  </Button>
-                  <Button>
-                    Save to Database
-                  </Button>
+                  {index < 3 && (
+                    <ArrowRight className="h-4 w-4 text-gray-400 mx-2" />
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-
-            <TransactionsTable
-              transactions={finalTransactions}
-              onTransactionUpdate={handleTransactionUpdate}
-              onTransactionDelete={handleTransactionDelete}
-              categories={sampleCategories}
-            />
+              );
+            })}
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Sample Data Helper */}
-        {currentStep === 'paste' && (
-          <Card className="border-dashed border-2 border-gray-300">
+      {/* Step Content */}
+      {currentStep === 'paste' && (
+        <ClipboardImport onDataParsed={handleDataParsed} />
+      )}
+
+      {currentStep === 'map' && parseResult && (
+        <ColumnMapper
+          headers={parseResult.headers}
+          sampleRows={parseResult.rows.slice(0, 5)}
+          onMappingComplete={handleMappingComplete}
+        />
+      )}
+
+      {currentStep === 'categorize' && hashedTransactions.length > 0 && (
+        <RememberCategorization
+          transactions={hashedTransactions}
+          categories={sampleCategories}
+          onCategorizationComplete={handleCategorizationComplete}
+        />
+      )}
+
+      {currentStep === 'review' && finalTransactions.length > 0 && (
+        <div className="space-y-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Need sample data to test?</CardTitle>
+              <CardTitle>Import Complete!</CardTitle>
+              <CardDescription>
+                Review your {finalTransactions.length} imported transactions below.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-2">Copy this sample CSV data to your clipboard, then click "Import from Clipboard":</p>
-              <pre className="text-xs bg-gray-100 p-3 rounded overflow-x-auto">
-{`Date,Description,Amount,Account
-2024-01-15,WALMART SUPERCENTER,-125.43,Checking
-2024-01-16,STARBUCKS COFFEE,-4.85,Credit Card
-2024-01-17,PAYROLL DEPOSIT,2500.00,Checking
-2024-01-18,SHELL GAS STATION,-45.20,Credit Card
-2024-01-19,AMAZON PURCHASE,-89.99,Credit Card`}
-              </pre>
+              <div className="flex gap-4">
+                <Button onClick={resetImport} variant="outline">
+                  Import More
+                </Button>
+                <Button>
+                  Save to Database
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        )}
-      </div>
+
+          <TransactionsTable
+            transactions={finalTransactions}
+            onTransactionUpdate={handleTransactionUpdate}
+            onTransactionDelete={handleTransactionDelete}
+            categories={sampleCategories}
+          />
+        </div>
+      )}
+
+      {/* Sample Data Helper */}
+      {currentStep === 'paste' && (
+        <Card className="border-dashed border-2 border-gray-300">
+          <CardHeader>
+            <CardTitle className="text-sm">Need sample data to test?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-2">Copy this sample CSV data to your clipboard, then click &quot;Import from Clipboard&quot;:</p>
+            <pre className="text-xs bg-gray-100 p-3 rounded overflow-x-auto">
+              {sampleData}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
