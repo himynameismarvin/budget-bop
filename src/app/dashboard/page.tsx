@@ -164,17 +164,44 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Coming Soon */}
+        {/* Quick Actions */}
         <div className="mt-8">
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-medium mb-2">More features coming soon!</h3>
-                <p className="text-gray-600 mb-4">
-                  Transaction import, expense tracking, and detailed analytics are in development.
-                </p>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button 
+                  onClick={() => router.push('/import')}
+                  className="h-20 flex flex-col items-center justify-center gap-2"
+                >
+                  <span className="text-lg">📥</span>
+                  <span>Import Transactions</span>
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2"
+                  disabled
+                >
+                  <span className="text-lg">📊</span>
+                  <span>View Analytics</span>
+                  <span className="text-xs opacity-60">Coming Soon</span>
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2"
+                  disabled
+                >
+                  <span className="text-lg">⚙️</span>
+                  <span>Settings</span>
+                  <span className="text-xs opacity-60">Coming Soon</span>
+                </Button>
+              </div>
+              
+              <div className="mt-6 text-center">
                 <div className="text-sm text-gray-500">
-                  Phase 0.2 (Onboarding) Complete ✅
+                  Phase 0.3 (Import MVP) Complete ✅
                 </div>
               </div>
             </CardContent>
