@@ -27,19 +27,19 @@
 - [x] Setup authentication flow (signin → onboarding → dashboard)
 
 ## 🔄 Current Status
-**Phase 0.2 Complete** - Full onboarding flow with Google OAuth, demographics collection, AI-powered category generation, and basic dashboard.
+**Phase 0.3 Complete** - Import MVP with clipboard parsing, column mapping, hash deduplication, transactions table with CRUD operations, auto-categorizer with vendor regex matching, and "Remember" functionality for learning categorization rules.
 
 ---
 
 ## 📋 Pending Tasks
 
-### Phase 0.3: Import MVP (Weeks 4-6)
-- [ ] Build clipboard import system with TSV/CSV/HTML parsing
-- [ ] Create column-mapping wizard for flexible data import
-- [ ] Implement SHA-1 hash deduplication to prevent duplicate transactions
-- [ ] Build transactions table with CRUD operations
-- [ ] Create auto-categorizer v0 with vendor regex matching
-- [ ] Setup "Remember" functionality for categorization rules
+### Phase 0.3: Import MVP (Weeks 4-6) ✅ COMPLETE
+- [x] Build clipboard import system with TSV/CSV/HTML parsing
+- [x] Create column-mapping wizard for flexible data import
+- [x] Implement SHA-1 hash deduplication to prevent duplicate transactions
+- [x] Build transactions table with CRUD operations
+- [x] Create auto-categorizer v0 with vendor regex matching
+- [x] Setup "Remember" functionality for categorization rules
 
 ### Phase 0.4: Bulk Import (Weeks 7-8)
 - [ ] Integrate Tesseract.js for client-side OCR
@@ -124,4 +124,4 @@
 
 ---
 
-*Last updated: Phase 0.2 completion - 2025-08-06*
+*Last updated: Phase 0.3 completion - 2025-08-06*

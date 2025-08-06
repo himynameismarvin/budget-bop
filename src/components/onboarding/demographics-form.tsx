@@ -17,13 +17,19 @@ export interface DemographicsData {
   age: number
 }
 
+interface DemographicsErrors {
+  country?: string
+  province_state?: string
+  age?: string
+}
+
 export function DemographicsForm({ onNext }: DemographicsFormProps) {
   const [formData, setFormData] = useState<DemographicsData>({
     country: '',
     province_state: '',
     age: 0,
   })
-  const [errors, setErrors] = useState<Partial<DemographicsData>>({})
+  const [errors, setErrors] = useState<DemographicsErrors>({})
 
   const countries = [
     'United States',
@@ -59,7 +65,7 @@ export function DemographicsForm({ onNext }: DemographicsFormProps) {
   }
 
   const validateForm = () => {
-    const newErrors: Partial<DemographicsData> = {}
+    const newErrors: DemographicsErrors = {}
     
     if (!formData.country) newErrors.country = 'Country is required'
     if (!formData.province_state) newErrors.province_state = 'Province/State is required'
@@ -163,7 +169,8 @@ export function DemographicsForm({ onNext }: DemographicsFormProps) {
               max="120"
               value={formData.age || ''}
               onChange={(e) => {
-                setFormData({ ...formData, age: parseInt(e.target.value) || 0 })
+                const value = e.target.value === '' ? 0 : parseInt(e.target.value) || 0
+                setFormData({ ...formData, age: value })
                 setErrors({ ...errors, age: undefined })
               }}
               placeholder="Enter your age"
