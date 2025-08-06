@@ -86,10 +86,15 @@ export function ColumnMapper({ headers, sampleRows, onMappingComplete }: ColumnM
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleFieldMapping = (fieldId: string, columnHeader: string) => {
-    setMapping(prev => ({
-      ...prev,
-      [fieldId]: columnHeader
-    }));
+    setMapping(prev => {
+      const newMapping = { ...prev };
+      if (columnHeader === '__none__') {
+        delete newMapping[fieldId];
+      } else {
+        newMapping[fieldId] = columnHeader;
+      }
+      return newMapping;
+    });
   };
 
   const isRequiredFieldsMapped = () => {
@@ -233,7 +238,7 @@ export function ColumnMapper({ headers, sampleRows, onMappingComplete }: ColumnM
                     <SelectValue placeholder={`Select column for ${field.label.toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">-- Not mapped --</SelectItem>
+                    <SelectItem value="__none__">-- Not mapped --</SelectItem>
                     {headers.map(header => (
                       <SelectItem key={header} value={header}>
                         {header}

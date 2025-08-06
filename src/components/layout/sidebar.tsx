@@ -95,7 +95,7 @@ export function Sidebar({ children }: SidebarProps) {
         <div className="md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -130,7 +130,7 @@ function SidebarContent({ navigation, pathname, router, user, onSignOut, onLinkC
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
           <div className="flex items-center">
-            <div className="text-2xl font-bold text-indigo-600">💸</div>
+            <div className="text-2xl font-bold text-purple-600">💸</div>
             <h1 className="ml-2 text-xl font-bold text-gray-900">Budget Bop</h1>
           </div>
         </div>
@@ -151,7 +151,7 @@ function SidebarContent({ navigation, pathname, router, user, onSignOut, onLinkC
                 className={`
                   group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left
                   ${isActive 
-                    ? 'bg-indigo-100 text-indigo-900' 
+                    ? 'bg-purple-100 text-purple-900' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
@@ -159,7 +159,7 @@ function SidebarContent({ navigation, pathname, router, user, onSignOut, onLinkC
                 <Icon
                   className={`
                     mr-3 h-5 w-5 flex-shrink-0
-                    ${isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'}
+                    ${isActive ? 'text-purple-500' : 'text-gray-400 group-hover:text-gray-500'}
                   `}
                 />
                 {item.name}

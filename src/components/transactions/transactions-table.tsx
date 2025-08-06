@@ -83,8 +83,8 @@ export function TransactionsTable({
         transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.reference?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesCategory = !filterCategory || transaction.category === filterCategory;
-      const matchesAccount = !filterAccount || transaction.account === filterAccount;
+      const matchesCategory = !filterCategory || filterCategory === '__all__' || transaction.category === filterCategory;
+      const matchesAccount = !filterAccount || filterAccount === '__all__' || transaction.account === filterAccount;
       const matchesDuplicateFilter = !showDuplicatesOnly || transaction.isDuplicate;
       
       return matchesSearch && matchesCategory && matchesAccount && matchesDuplicateFilter;
@@ -248,7 +248,7 @@ export function TransactionsTable({
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="__all__">All Categories</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
@@ -260,7 +260,7 @@ export function TransactionsTable({
                 <SelectValue placeholder="Account" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Accounts</SelectItem>
+                <SelectItem value="__all__">All Accounts</SelectItem>
                 {accounts.map(account => (
                   <SelectItem key={account} value={account}>{account}</SelectItem>
                 ))}
@@ -399,12 +399,12 @@ function EditableTransactionRow({
           />
         </TableCell>
         <TableCell>
-          <Select value={editedTransaction.category || ''} onValueChange={(value) => setEditedTransaction(prev => ({ ...prev, category: value }))}>
+          <Select value={editedTransaction.category || '__none__'} onValueChange={(value) => setEditedTransaction(prev => ({ ...prev, category: value === '__none__' ? undefined : value }))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="__none__">None</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
@@ -412,12 +412,12 @@ function EditableTransactionRow({
           </Select>
         </TableCell>
         <TableCell>
-          <Select value={editedTransaction.account || ''} onValueChange={(value) => setEditedTransaction(prev => ({ ...prev, account: value }))}>
+          <Select value={editedTransaction.account || '__none__'} onValueChange={(value) => setEditedTransaction(prev => ({ ...prev, account: value === '__none__' ? undefined : value }))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="__none__">None</SelectItem>
               {accounts.map(account => (
                 <SelectItem key={account} value={account}>{account}</SelectItem>
               ))}
