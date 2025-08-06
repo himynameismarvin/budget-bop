@@ -68,22 +68,16 @@ export default function DashboardPage() {
   const savingsRate = totalIncome > 0 ? ((netSavings / totalIncome) * 100).toFixed(1) : 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Budget Bop Dashboard</h1>
-            <p className="text-gray-600">
-              Welcome back, {user?.email}
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => signOut()}>
-            Sign Out
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">
+          Welcome back, {user?.email}
+        </p>
+      </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Income</CardTitle>
@@ -129,8 +123,8 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Categories Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Categories Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Income Categories</CardTitle>
@@ -164,8 +158,8 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8">
+      {/* Quick Actions */}
+      <div>
           <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
@@ -207,7 +201,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
     </div>
   )
 }

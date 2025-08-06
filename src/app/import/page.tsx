@@ -88,16 +88,15 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Transaction Import</h1>
-          <p className="text-gray-600 mt-2">Import, map, and categorize your transactions</p>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Transaction Import</h1>
+        <p className="text-gray-600">Import, map, and categorize your transactions</p>
+      </div>
 
-        {/* Progress Steps */}
-        <Card>
+      {/* Progress Steps */}
+      <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               {(['paste', 'map', 'categorize', 'review'] as ImportStep[]).map((step, index) => {
