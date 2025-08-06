@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useAuth } from '@/components/providers'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -8,19 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
+  const { user, signOut } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<any>(null)
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (!user) {
       router.push('/auth/signin')
-    } else if (session?.user?.id) {
+    } else {
       loadUserData()
     }
-  }, [session, status])
+  }, [user])
 
   const loadUserData = async () => {
     try {
@@ -28,7 +28,7 @@ export default function DashboardPage() {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session?.user?.id)
+        .eq('id', user?.id)
         .single()
 
       if (!profileData?.onboarding_complete) {
@@ -42,7 +42,7 @@ export default function DashboardPage() {
       const { data: categoriesData } = await supabase
         .from('categories')
         .select('*')
-        .eq('user_id', session?.user?.id)
+        .eq('user_id', user?.id)
 
       setCategories(categoriesData || [])
     } catch (error) {
@@ -52,7 +52,7 @@ export default function DashboardPage() {
     }
   }
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Budget Bop Dashboard</h1>
             <p className="text-gray-600">
-              Welcome back, {session?.user?.name || session?.user?.email}
+              Welcome back, {user?.email}
             </p>
           </div>
           <Button variant="outline" onClick={() => signOut()}>

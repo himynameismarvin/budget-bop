@@ -1,21 +1,21 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/components/providers'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (user) {
       router.push('/dashboard')
     }
-  }, [status, router])
+  }, [user, router])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

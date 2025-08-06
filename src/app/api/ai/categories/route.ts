@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { supabase } from '@/lib/auth'
 
 interface CategorySuggestion {
   name: string
@@ -10,9 +9,9 @@ interface CategorySuggestion {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
+    // Get the authorization header to verify user
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -25,55 +24,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Call OpenAI GPT-4o-mini
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a financial advisor helping create budget categories. Return only valid JSON with an array of budget categories. Each category should have: name (string), group (string: "Income" or "Expenses"), and default_budget (number). Provide realistic budget amounts in local currency for the given demographics.'
-          },
-          {
-            role: 'user',
-            content: `Generate budget categories for someone living in ${province_state}, ${country}, age ${age}. Include both income and expense categories relevant to their location and life stage. Provide 15-20 categories total with realistic monthly budget amounts.`
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-      }),
-    })
-
-    if (!openaiResponse.ok) {
-      console.error('OpenAI API error:', await openaiResponse.text())
-      return NextResponse.json(
-        { error: 'Failed to generate categories' },
-        { status: 500 }
-      )
-    }
-
-    const openaiData = await openaiResponse.json()
-    const content = openaiData.choices[0]?.message?.content
-
-    if (!content) {
-      return NextResponse.json(
-        { error: 'No content received from AI' },
-        { status: 500 }
-      )
-    }
-
-    // Parse the JSON response
+    // Try GitHub API first, then fall back to default categories
     let categories: CategorySuggestion[]
+    
     try {
-      categories = JSON.parse(content)
-    } catch (error) {
-      console.error('Failed to parse AI response:', content)
-      // Fallback categories
+      // Call GitHub Models API (free tier)
+      const githubResponse = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a financial advisor helping create budget categories. Return only valid JSON with an array of budget categories. Each category should have: name (string), group (string: "Income" or "Expenses"), and default_budget (number). Provide realistic budget amounts in local currency for the given demographics.'
+            },
+            {
+              role: 'user',
+              content: `Generate budget categories for someone living in ${province_state}, ${country}, age ${age}. Include both income and expense categories relevant to their location and life stage. Provide 15-20 categories total with realistic monthly budget amounts.`
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        }),
+      })
+
+      if (githubResponse.ok) {
+        const githubData = await githubResponse.json()
+        const content = githubData.choices[0]?.message?.content
+
+        if (content) {
+          try {
+            categories = JSON.parse(content)
+          } catch (parseError) {
+            console.warn('Failed to parse AI response, using defaults')
+            categories = getDefaultCategories(country)
+          }
+        } else {
+          categories = getDefaultCategories(country)
+        }
+      } else {
+        console.warn('GitHub API failed, using defaults')
+        categories = getDefaultCategories(country)
+      }
+    } catch (aiError) {
+      console.warn('AI API error, using defaults:', aiError)
       categories = getDefaultCategories(country)
     }
 

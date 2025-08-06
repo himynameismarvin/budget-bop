@@ -1,54 +1,102 @@
 'use client'
 
-import { signIn, getSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/providers'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function SignIn() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const { signIn, signUp } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const session = await getSession()
-      if (session) {
-        router.push('/dashboard')
-      }
-    }
-    checkSession()
-  }, [router])
-
-  const handleGoogleSignIn = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setLoading(true)
+    setError('')
+
     try {
-      await signIn('google', { callbackUrl: '/onboarding' })
-    } catch (error) {
-      console.error('Sign in error:', error)
+      const { error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password)
+
+      if (error) {
+        setError(error.message)
+      } else if (!isSignUp) {
+        router.push('/dashboard')
+      } else {
+        setError('Please check your email for verification link')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
+    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Budget Bop
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Paste. Review. Decide.
-          </p>
-        </div>
-        <div>
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in with Google'}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold">Budget Bop</CardTitle>
+          <CardDescription>Paste. Review. Decide.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                minLength={6}
+              />
+            </div>
+
+            {error && (
+              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+            </Button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

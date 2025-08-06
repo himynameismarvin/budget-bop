@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/components/providers'
 import { useRouter } from 'next/navigation'
 import { DemographicsForm, DemographicsData } from '@/components/onboarding/demographics-form'
 import { CategoryAIWizard, CategoryData } from '@/components/onboarding/category-ai-wizard'
@@ -10,21 +10,13 @@ import { supabase } from '@/lib/supabase'
 type OnboardingStep = 'demographics' | 'categories'
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession()
+  const { user } = useAuth()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('demographics')
   const [demographics, setDemographics] = useState<DemographicsData | null>(null)
   const [saving, setSaving] = useState(false)
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (status === 'unauthenticated') {
+  if (!user) {
     router.push('/auth/signin')
     return null
   }
@@ -39,7 +31,7 @@ export default function OnboardingPage() {
   }
 
   const handleCategoriesNext = async (categories: CategoryData[]) => {
-    if (!session?.user?.id || !demographics) return
+    if (!user?.id || !demographics) return
 
     setSaving(true)
     try {
@@ -47,7 +39,7 @@ export default function OnboardingPage() {
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          id: session.user.id,
+          id: user.id,
           country: demographics.country,
           province_state: demographics.province_state,
           age: demographics.age,
@@ -58,7 +50,7 @@ export default function OnboardingPage() {
 
       // Save categories
       const categoriesWithUserId = categories.map(cat => ({
-        user_id: session.user.id,
+        user_id: user.id,
         name: cat.name,
         group_name: cat.group,
         default_budget: cat.default_budget,
@@ -73,7 +65,7 @@ export default function OnboardingPage() {
       // Create default budgets for current month
       const currentDate = new Date()
       const budgets = categories.map(cat => ({
-        user_id: session.user.id,
+        user_id: user.id,
         category_id: cat.name, // This will need to be updated with actual category IDs
         amount: cat.default_budget,
         month: currentDate.getMonth() + 1,

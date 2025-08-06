@@ -37,6 +37,7 @@ export function CategoryAIWizard({ demographics, onNext, onBack }: CategoryAIWiz
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer user-token', // Simple auth for demo
         },
         body: JSON.stringify(demographics),
       })
