@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Filter, X, Check, Trash2, Plus, ChevronDown, Loader2 } from 'lucide-react';
+import { Filter, X, Check, Trash2, Plus, ChevronDown, Loader2, Calendar } from 'lucide-react';
 
 export interface EditableTransaction {
   id: string;
@@ -735,7 +735,7 @@ export function InlineEditableTable({
                       className="border-0 focus:ring-0 focus:outline-none bg-transparent h-8 px-2 shadow-none"
                     />
                   </TableCell>
-                  <TableCell className="p-1">
+                  <TableCell className="p-1 pr-6">
                     <div className="flex items-center gap-1">
                       <div className="w-4 h-4 flex items-center justify-center">
                         {pendingSaveRows.has(transaction.id) ? (
