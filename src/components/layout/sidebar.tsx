@@ -171,9 +171,9 @@ function SidebarContent({ navigation, pathname, router, user, onSignOut, onLinkC
       
       {/* User section */}
       <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-        <div className="flex items-center w-full">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700">
+        <div className="flex items-center w-full min-w-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-700 truncate">
               {user?.email}
             </p>
             <p className="text-xs text-gray-500">
@@ -184,7 +184,7 @@ function SidebarContent({ navigation, pathname, router, user, onSignOut, onLinkC
             variant="ghost"
             size="sm"
             onClick={onSignOut}
-            className="ml-2"
+            className="ml-2 flex-shrink-0"
           >
             <LogOut className="h-4 w-4" />
           </Button>

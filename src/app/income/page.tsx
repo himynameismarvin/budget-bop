@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { InlineEditableTable, EditableTransaction } from '@/components/transactions/inline-editable-table';
+import { SimpleEditableTable, EditableTransaction } from '@/components/transactions/simple-editable-table';
 import { supabase, Transaction } from '@/lib/supabase';
 import { useAuth } from '@/components/providers';
 import { HashedTransaction } from '@/lib/transaction-hash';
-import { Plus, TrendingUp, DollarSign, Calendar, PieChart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, TrendingUp, DollarSign, Calendar, PieChart, ChevronLeft, ChevronRight, Save, Loader2, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function IncomePage() {
@@ -17,6 +17,26 @@ export default function IncomePage() {
   const [accounts, setAccounts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM format
+  
+  // Month-specific save state
+  const [unsavedRows, setUnsavedRows] = useState<Set<string>>(new Set());
+  const [savedRows, setSavedRows] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  const [originalTransactions, setOriginalTransactions] = useState<Map<string, EditableTransaction>>(new Map());
+
+  // Navigation protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (unsavedRows.size > 0) {
+        e.preventDefault();
+        e.returnValue = `You have ${unsavedRows.size} unsaved changes. Leave anyway?`;
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [unsavedRows.size]);
 
   useEffect(() => {
     if (user) {
@@ -26,9 +46,17 @@ export default function IncomePage() {
 
   const loadIncomeData = async () => {
     try {
+      // Reset save state for new month
+      setUnsavedRows(new Set());
+      setSavedRows(new Set());
+      setOriginalTransactions(new Map());
+
       // Load income transactions for selected month with category and account names
+      const [year, month] = selectedMonth.split('-').map(Number);
       const startDate = `${selectedMonth}-01`;
-      const endDate = `${selectedMonth}-31`;
+      // Get the last day of the month properly
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
       
       const { data: transactionData } = await supabase
         .from('transactions')
@@ -71,6 +99,20 @@ export default function IncomePage() {
       setTransactions(editableTransactions);
       setCategories(categoryData?.map(c => c.name) || []);
       setAccounts(accountData?.map(a => a.name) || []);
+
+      // Store original state for change tracking (only for new month loads)
+      const originalMap = new Map();
+      editableTransactions.forEach(transaction => originalMap.set(transaction.id, { ...transaction }));
+      setOriginalTransactions(originalMap);
+
+      // Mark existing transactions as saved
+      const savedIds = editableTransactions
+        .filter(t => !t.isNew && t.vendor && t.amount)
+        .map(t => t.id);
+      
+      if (savedIds.length > 0) {
+        setSavedRows(new Set(savedIds));
+      }
     } catch (error) {
       console.error('Error loading income data:', error);
     } finally {
@@ -78,95 +120,51 @@ export default function IncomePage() {
     }
   };
 
-  const handleTransactionSave = async (transaction: EditableTransaction): Promise<string | void> => {
-    try {
-      // Only save if transaction has meaningful data
-      if (!transaction.vendor || !transaction.amount) {
-        return;
-      }
+  // Check if transaction has changed from original state
+  const hasTransactionChanged = (transaction: EditableTransaction): boolean => {
+    const original = originalTransactions.get(transaction.id);
+    if (!original) return true; // New transaction, consider it changed
+    
+    return (
+      original.date !== transaction.date ||
+      original.vendor !== transaction.vendor ||
+      original.amount !== transaction.amount ||
+      original.category !== transaction.category ||
+      original.notes !== transaction.notes ||
+      original.account !== transaction.account
+    );
+  };
 
-      // Convert month format to full date (first day of month) - use selected month if no date specified
-      const fullDate = transaction.date ? `${transaction.date}-01` : `${selectedMonth}-01`;
-      const amountValue = transaction.amount ? parseInt(transaction.amount.toString()) : 0; // Store as positive integer for income
-
-      // Get category ID if category is selected
-      let categoryId = null;
-      if (transaction.category) {
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('name', transaction.category)
-          .eq('user_id', user?.id)
-          .single();
-        categoryId = categoryData?.id;
-      }
-
-      // Get account ID if account is selected
-      let accountId = null;
-      if (transaction.account) {
-        const { data: accountData } = await supabase
-          .from('accounts')
-          .select('id')
-          .eq('name', transaction.account)
-          .eq('user_id', user?.id)
-          .single();
-        accountId = accountData?.id;
-      }
-
-      if (transaction.isNew || transaction.id.startsWith('new-')) {
-        // Create new transaction
-        const { data, error } = await supabase
-          .from('transactions')
-          .insert({
-            user_id: user?.id,
-            description: transaction.vendor,
-            amount: amountValue,
-            transaction_date: fullDate,
-            vendor: transaction.notes || '',
-            category_id: categoryId,
-            account_id: accountId,
-            is_income: true
-          })
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Insert error:', error);
-          throw error;
+  // Handle field changes
+  const handleTransactionChange = (id: string, field: keyof EditableTransaction, value: string | number) => {
+    setTransactions(prev => {
+      return prev.map(transaction => {
+        if (transaction.id === id) {
+          const updatedTransaction = { ...transaction, [field]: value };
+          
+          // Update unsaved state
+          if (hasTransactionChanged(updatedTransaction)) {
+            setUnsavedRows(prev => new Set(prev).add(id));
+            // Remove from saved if it was previously saved
+            setSavedRows(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
+          } else {
+            // No changes, remove from unsaved
+            setUnsavedRows(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
+          }
+          
+          return updatedTransaction;
         }
-
-        // Return the new ID so the table can track it
-        return data.id;
-      } else {
-        // Update existing transaction
-        const { error } = await supabase
-          .from('transactions')
-          .update({
-            description: transaction.vendor,
-            amount: amountValue,
-            transaction_date: fullDate,
-            vendor: transaction.notes || '',
-            category_id: categoryId,
-            account_id: accountId
-          })
-          .eq('id', transaction.id);
-
-        if (error) {
-          console.error('Update error:', error);
-          throw error;
-        }
-
-        // Update local state
-        setTransactions(prev => 
-          prev.map(t => t.id === transaction.id 
-            ? { ...transaction, isNew: false }
-            : t
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error saving transaction:', error);
-    }
+        return transaction;
+      });
+    });
   };
 
   const handleTransactionDelete = async (transactionId: string) => {
@@ -181,9 +179,149 @@ export default function IncomePage() {
         if (error) throw error;
       }
 
+      // Remove from all tracking sets
+      setUnsavedRows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(transactionId);
+        return newSet;
+      });
+      setSavedRows(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(transactionId);
+        return newSet;
+      });
+      setOriginalTransactions(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(transactionId);
+        return newMap;
+      });
+
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
     } catch (error) {
       console.error('Error deleting transaction:', error);
+    }
+  };
+
+  // Month-specific save function
+  const handleSaveAll = async () => {
+    if (unsavedRows.size === 0) return;
+
+    setIsSaving(true);
+    try {
+      const unsavedTransactions = transactions.filter(t => unsavedRows.has(t.id));
+      
+      for (const transaction of unsavedTransactions) {
+        // Only save if transaction has meaningful data
+        if (!transaction.vendor || !transaction.amount) {
+          continue;
+        }
+
+        const fullDate = transaction.date ? `${transaction.date}-01` : `${selectedMonth}-01`;
+        const amountValue = transaction.amount ? parseInt(transaction.amount.toString()) : 0; // Positive for income
+
+        // Get category ID
+        let categoryId = null;
+        if (transaction.category) {
+          const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', transaction.category)
+            .eq('user_id', user?.id)
+            .single();
+          categoryId = categoryData?.id;
+        }
+
+        // Get account ID
+        let accountId = null;
+        if (transaction.account) {
+          const { data: accountData } = await supabase
+            .from('accounts')
+            .select('id')
+            .eq('name', transaction.account)
+            .eq('user_id', user?.id)
+            .single();
+          accountId = accountData?.id;
+        }
+
+        if (transaction.isNew || transaction.id.startsWith('new-')) {
+          // Create new transaction
+          const { data, error } = await supabase
+            .from('transactions')
+            .insert({
+              user_id: user?.id,
+              description: transaction.vendor,
+              amount: amountValue,
+              transaction_date: fullDate,
+              vendor: transaction.notes || '',
+              category_id: categoryId,
+              account_id: accountId,
+              is_income: true
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          // Update transaction with new ID
+          const newId = data.id;
+          setTransactions(prev => 
+            prev.map(t => t.id === transaction.id 
+              ? { ...t, id: newId, isNew: false }
+              : t
+            )
+          );
+
+          // Update tracking
+          setOriginalTransactions(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(transaction.id);
+            newMap.set(newId, { ...transaction, id: newId, isNew: false });
+            return newMap;
+          });
+
+          // Mark as saved with new ID
+          setSavedRows(prev => new Set(prev).add(newId));
+          setUnsavedRows(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(transaction.id);
+            return newSet;
+          });
+        } else {
+          // Update existing transaction
+          const { error } = await supabase
+            .from('transactions')
+            .update({
+              description: transaction.vendor,
+              amount: amountValue,
+              transaction_date: fullDate,
+              vendor: transaction.notes || '',
+              category_id: categoryId,
+              account_id: accountId
+            })
+            .eq('id', transaction.id);
+
+          if (error) throw error;
+
+          // Mark as saved
+          setSavedRows(prev => new Set(prev).add(transaction.id));
+          setUnsavedRows(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(transaction.id);
+            return newSet;
+          });
+
+          // Update original state
+          setOriginalTransactions(prev => {
+            const newMap = new Map(prev);
+            newMap.set(transaction.id, { ...transaction, isNew: false });
+            return newMap;
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error saving transactions:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -193,6 +331,17 @@ export default function IncomePage() {
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
+    // Check for unsaved changes
+    if (unsavedRows.size > 0) {
+      const confirmed = window.confirm(
+        `You have ${unsavedRows.size} unsaved changes in ${formatMonthDisplay(selectedMonth)}. ` +
+        'These changes will be lost if you navigate away. Continue anyway?'
+      );
+      if (!confirmed) {
+        return; // Stay on current month
+      }
+    }
+
     const [year, month] = selectedMonth.split('-').map(Number);
     let newYear = year;
     let newMonth = month;
@@ -215,8 +364,48 @@ export default function IncomePage() {
     setSelectedMonth(newDate);
   };
 
+  const handleMonthInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newMonth = e.target.value;
+    
+    // Check for unsaved changes
+    if (unsavedRows.size > 0 && newMonth !== selectedMonth) {
+      const confirmed = window.confirm(
+        `You have ${unsavedRows.size} unsaved changes in ${formatMonthDisplay(selectedMonth)}. ` +
+        'These changes will be lost if you navigate away. Continue anyway?'
+      );
+      if (!confirmed) {
+        return; // Keep current month
+      }
+    }
+    
+    setSelectedMonth(newMonth);
+  };
+
+  const handleAddRow = () => {
+    const newRow: EditableTransaction = {
+      id: `new-${Date.now()}-${Math.random()}`,
+      date: selectedMonth,
+      vendor: '',
+      amount: '',
+      category: '',
+      notes: '',
+      account: '',
+      isNew: true
+    };
+    
+    setTransactions(prev => [...prev, newRow]);
+    
+    // Add to original transactions for change tracking
+    setOriginalTransactions(prev => {
+      const newMap = new Map(prev);
+      newMap.set(newRow.id, { ...newRow });
+      return newMap;
+    });
+  };
+
   const formatMonthDisplay = (monthString: string) => {
-    const date = new Date(monthString + '-01');
+    const [year, month] = monthString.split('-').map(Number);
+    const date = new Date(year, month - 1, 1); // month is 0-indexed in Date constructor
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long' 
@@ -258,7 +447,7 @@ export default function IncomePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Header with Month Navigation */}
       <div className="flex items-center justify-between">
         <div>
@@ -268,39 +457,49 @@ export default function IncomePage() {
           </h1>
           <p className="text-gray-600">Track and manage your income</p>
         </div>
-        <Button onClick={handleBulkAdd} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Bulk Add
-        </Button>
       </div>
 
       {/* Month Navigation */}
-      <div className="flex items-center justify-center gap-4 py-4">
+      <div className="flex items-center justify-between py-8 px-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
         <Button
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={() => navigateMonth('prev')}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-5 w-5" />
           Previous
         </Button>
         
-        <Input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="w-48 text-center text-lg font-semibold"
-        />
+        <div className="flex flex-col items-center">
+          <label className="text-sm font-medium text-green-700 mb-2">Viewing Month</label>
+          <div 
+            className="text-4xl font-bold text-green-900 cursor-pointer hover:text-green-700 transition-colors relative"
+            onClick={() => {
+              const input = document.getElementById('income-month-picker') as HTMLInputElement;
+              input?.focus();
+              input?.showPicker?.();
+            }}
+          >
+            {formatMonthDisplay(selectedMonth)}
+            <input
+              id="income-month-picker"
+              type="month"
+              value={selectedMonth}
+              onChange={handleMonthInputChange}
+              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+            />
+          </div>
+        </div>
         
         <Button
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={() => navigateMonth('next')}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
         >
           Next
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
 
@@ -381,17 +580,60 @@ export default function IncomePage() {
         </Card>
       )}
 
-      {/* Inline Editable Transactions Table */}
-      <InlineEditableTable
+      {/* Simple Editable Transactions Table */}
+      <SimpleEditableTable
         title="Income Transactions"
         categories={categories}
         accounts={accounts}
-        onTransactionSave={handleTransactionSave}
+        transactions={transactions}
+        onTransactionChange={handleTransactionChange}
         onTransactionDelete={handleTransactionDelete}
-        initialTransactions={transactions}
-        onTransactionsChange={setTransactions}
+        onAddRow={handleAddRow}
         defaultMonth={selectedMonth}
+        unsavedRows={unsavedRows}
+        savedRows={savedRows}
       />
+      
+      {/* Floating Controls - Positioned within content area */}
+      <div className="sticky bottom-6 flex justify-center mt-8 z-50">
+        <div className="flex gap-4">
+          <Button 
+            onClick={handleAddRow}
+            variant="outline"
+            className="bg-white hover:bg-gray-50 text-gray-700 shadow-lg rounded-full px-6 py-3 flex items-center gap-2 border-gray-200"
+          >
+            <Plus className="h-4 w-4" />
+            Add Row
+          </Button>
+          
+          <Button 
+            onClick={handleBulkAdd}
+            variant="outline"
+            className="bg-white hover:bg-gray-50 text-gray-700 shadow-lg rounded-full px-6 py-3 flex items-center gap-2 border-gray-200"
+          >
+            <Download className="h-4 w-4" />
+            Import
+          </Button>
+          
+          <Button 
+            onClick={handleSaveAll}
+            disabled={unsavedRows.size === 0 || isSaving}
+            className="bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-full px-6 py-3 flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                {unsavedRows.size > 0 ? `Save ${unsavedRows.size} Changes` : 'No Changes'}
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

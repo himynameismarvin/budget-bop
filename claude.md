@@ -57,3 +57,38 @@ HOST=localhost nohup npm run dev > dev.log 2>&1 &
 **Session Persistence**:
 - Updated Supabase client with `persistSession: true` and `autoRefreshToken: true`
 - Sessions now persist across browser sessions automatically
+
+## Global Save System (Phase 0.4)
+
+**Problem**: Complex autosave system with timeouts caused reliability issues and conflicts with month filtering functionality.
+
+**Solution**: Implemented global manual save system that persists across month navigation within expenses page.
+
+**Features**:
+- **Cross-Month State**: Unsaved changes persist when switching between months
+- **Floating Controls**: Add Row and Save buttons stay visible at bottom of page
+- **Smart Save Button**: Shows count of unsaved changes, disables when nothing to save
+- **Visual Indicators**: Orange dots for unsaved rows, green checkmarks for saved rows
+- **Navigation Protection**: Warns user before leaving page with unsaved changes
+- **Batch Operations**: Saves all unsaved changes in one operation
+
+**Key Components**:
+- `src/components/transactions/simple-editable-table.tsx` - Simplified table without autosave complexity
+- Global state management: `globalUnsavedRows`, `globalSavedRows`, `isSaving`
+- Navigation protection with `beforeunload` event handler
+- Floating controls positioned at bottom-center of viewport
+
+**User Experience**:
+1. User can edit transactions across multiple months
+2. Save button shows "Save 5 Changes" with count of unsaved rows
+3. State persists when switching months (no data loss)
+4. Clear visual feedback on what's saved vs unsaved
+5. Batch save operation handles all changes at once
+6. Browser warns before leaving with unsaved changes
+
+**Benefits**:
+- Eliminated complex autosave timing issues
+- Month filtering works reliably without race conditions
+- Clear user control over when data is saved
+- Consistent state management across month navigation
+- Much easier to debug and maintain
