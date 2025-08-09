@@ -106,16 +106,32 @@ export default function ExpensesPage() {
       }));
 
       console.log('Setting transactions for month:', selectedMonth, 'Count:', editableTransactions.length);
-      setTransactions(editableTransactions);
+      
+      // Ensure minimum 10 rows per month
+      const minRows = 10;
+      const emptyRowsNeeded = Math.max(0, minRows - editableTransactions.length);
+      const emptyRows: EditableTransaction[] = Array.from({ length: emptyRowsNeeded }, (_, index) => ({
+        id: `empty-${selectedMonth}-${index}-${Date.now()}`,
+        date: selectedMonth,
+        vendor: '',
+        amount: '',
+        category: '',
+        notes: '',
+        account: '',
+        isNew: true
+      }));
+      
+      const allTransactions = [...editableTransactions, ...emptyRows];
+      setTransactions(allTransactions);
       setCategories(categoryData?.map(c => c.name) || []);
       setAccounts(accountData?.map(a => a.name) || []);
 
       // Store original state for change tracking (only for new month loads)
       const originalMap = new Map();
-      editableTransactions.forEach(transaction => originalMap.set(transaction.id, { ...transaction }));
+      allTransactions.forEach(transaction => originalMap.set(transaction.id, { ...transaction }));
       setOriginalTransactions(originalMap);
 
-      // Mark existing transactions as saved
+      // Mark existing transactions as saved (not empty rows)
       const savedIds = editableTransactions
         .filter(t => !t.isNew && t.vendor && t.amount)
         .map(t => t.id);

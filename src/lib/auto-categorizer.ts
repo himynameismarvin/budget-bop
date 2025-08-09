@@ -1,5 +1,6 @@
 export interface CategoryRule {
   id: string;
+  user_id?: string;
   name: string;
   category: string;
   patterns: string[];
@@ -9,6 +10,7 @@ export interface CategoryRule {
   createdAt?: Date;
   lastUsed?: Date;
   useCount?: number;
+  isUserDefined?: boolean;
 }
 
 export interface AutoCategorizationResult {
@@ -21,9 +23,29 @@ export interface AutoCategorizationResult {
 
 export class AutoCategorizer {
   private rules: CategoryRule[] = [];
+  private userCategories: string[] = [];
+  private userId?: string;
 
-  constructor(initialRules: CategoryRule[] = []) {
+  constructor(
+    initialRules: CategoryRule[] = [],
+    userCategories: string[] = [],
+    userId?: string
+  ) {
     this.rules = [...DEFAULT_RULES, ...initialRules];
+    this.userCategories = userCategories;
+    this.userId = userId;
+  }
+
+  /**
+   * Update user categories and rules
+   */
+  updateUserData(userCategories: string[], userRules: CategoryRule[] = [], userId?: string) {
+    this.userCategories = userCategories;
+    this.userId = userId;
+    
+    // Remove existing user rules and add new ones
+    this.rules = this.rules.filter(rule => !rule.isUserDefined);
+    this.rules.push(...userRules);
   }
 
   /**
@@ -71,14 +93,22 @@ export class AutoCategorizer {
   }
 
   /**
-   * Categorize a transaction description
+   * Categorize a transaction description using user's categories
    */
   categorizeTransaction(description: string): AutoCategorizationResult {
     const normalizedDescription = this.normalizeDescription(description);
     const matches: Array<{ rule: CategoryRule; confidence: number }> = [];
 
+    // Only consider rules that map to user's categories or are learning opportunities
     for (const rule of this.rules) {
       if (!rule.isActive) continue;
+      
+      // Skip default rules that don't match user's categories unless user has no categories
+      if (!rule.isUserDefined && 
+          this.userCategories.length > 0 && 
+          !this.userCategories.includes(rule.category)) {
+        continue;
+      }
 
       const confidence = this.calculateMatchConfidence(normalizedDescription, rule);
       if (confidence > 0) {
@@ -86,13 +116,23 @@ export class AutoCategorizer {
       }
     }
 
-    // Sort by confidence (highest first)
-    matches.sort((a, b) => b.confidence - a.confidence);
+    // Sort by confidence and user preference
+    matches.sort((a, b) => {
+      // Prefer user-defined rules
+      if (a.rule.isUserDefined && !b.rule.isUserDefined) return -1;
+      if (!a.rule.isUserDefined && b.rule.isUserDefined) return 1;
+      
+      // Then by confidence
+      if (Math.abs(a.confidence - b.confidence) < 0.1) {
+        return b.rule.useCount! - a.rule.useCount!; // Prefer frequently used rules
+      }
+      return b.confidence - a.confidence;
+    });
 
     const result: AutoCategorizationResult = {
       originalDescription: description,
       confidence: matches.length > 0 ? matches[0].confidence : 0,
-      alternatives: matches.slice(1).map(match => ({
+      alternatives: matches.slice(1, 4).map(match => ({
         category: match.rule.category,
         confidence: match.confidence,
         rule: match.rule
@@ -100,11 +140,12 @@ export class AutoCategorizer {
     };
 
     if (matches.length > 0) {
-      result.suggestedCategory = matches[0].rule.category;
-      result.matchedRule = matches[0].rule;
+      const bestMatch = matches[0];
+      result.suggestedCategory = bestMatch.rule.category;
+      result.matchedRule = bestMatch.rule;
       
       // Update rule usage statistics
-      this.updateRuleUsage(matches[0].rule.id);
+      this.updateRuleUsage(bestMatch.rule.id);
     }
 
     return result;
@@ -121,13 +162,22 @@ export class AutoCategorizer {
    * Learn from user corrections to improve categorization
    */
   learnFromCorrection(description: string, correctCategory: string, rejectedSuggestion?: string) {
+    // Only learn if the category is in the user's category list
+    if (this.userCategories.length > 0 && !this.userCategories.includes(correctCategory)) {
+      console.warn('Cannot learn correction: category not in user categories list', {
+        correctCategory,
+        userCategories: this.userCategories
+      });
+      return;
+    }
+
     const normalizedDescription = this.normalizeDescription(description);
     
     // Extract key patterns from the description
     const patterns = this.extractPatterns(normalizedDescription);
     
     // Create or update a rule for this pattern
-    const existingRule = this.findExistingRule(patterns, correctCategory);
+    const existingRule = this.findExistingUserRule(patterns, correctCategory);
     
     if (existingRule) {
       // Strengthen existing rule
@@ -135,13 +185,15 @@ export class AutoCategorizer {
       existingRule.useCount = (existingRule.useCount || 0) + 1;
       existingRule.lastUsed = new Date();
     } else {
-      // Create new rule
+      // Create new user-defined rule
       this.addRule({
         name: `Auto-learned: ${patterns[0]}`,
         category: correctCategory,
         patterns,
-        confidence: 0.7,
-        isRegex: false
+        confidence: 0.8, // Higher confidence for user corrections
+        isRegex: false,
+        isUserDefined: true,
+        user_id: this.userId
       });
     }
 
@@ -153,9 +205,31 @@ export class AutoCategorizer {
       );
       
       if (rejectedRule && rejectedRule.confidence) {
-        rejectedRule.confidence = Math.max(0.1, rejectedRule.confidence - 0.2);
+        // Don't permanently damage default rules, just lower confidence temporarily
+        if (rejectedRule.isUserDefined) {
+          rejectedRule.confidence = Math.max(0.1, rejectedRule.confidence - 0.3);
+        } else {
+          rejectedRule.confidence = Math.max(0.3, rejectedRule.confidence - 0.1);
+        }
       }
     }
+  }
+
+  /**
+   * Get user-defined rules for database persistence
+   */
+  getUserDefinedRules(): CategoryRule[] {
+    return this.rules.filter(rule => rule.isUserDefined);
+  }
+
+  /**
+   * Load user-defined rules from database
+   */
+  loadUserRules(userRules: CategoryRule[]) {
+    // Remove existing user rules
+    this.rules = this.rules.filter(rule => !rule.isUserDefined);
+    // Add loaded rules
+    this.rules.push(...userRules.map(rule => ({ ...rule, isActive: rule.isActive !== false })));
   }
 
   private normalizeDescription(description: string): string {
@@ -277,6 +351,19 @@ export class AutoCategorizer {
     }
 
     return patterns.length > 0 ? patterns : [description];
+  }
+
+  private findExistingUserRule(patterns: string[], category: string): CategoryRule | undefined {
+    return this.rules.find(rule => 
+      rule.isUserDefined &&
+      rule.category === category &&
+      rule.patterns.some(rulePattern => 
+        patterns.some(pattern => 
+          rulePattern.toLowerCase().includes(pattern.toLowerCase()) ||
+          pattern.toLowerCase().includes(rulePattern.toLowerCase())
+        )
+      )
+    );
   }
 
   private findExistingRule(patterns: string[], category: string): CategoryRule | undefined {

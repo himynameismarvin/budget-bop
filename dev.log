@@ -7,528 +7,793 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 930ms
- ○ Compiling /expenses ...
- ✓ Compiled /expenses in 1861ms (856 modules)
- GET /expenses 200 in 2051ms
- ✓ Compiled /_not-found in 277ms (836 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 154ms
- GET /expenses 200 in 68ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
- GET /expenses 200 in 21ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
- ✓ Compiled /import in 365ms (898 modules)
- ✓ Compiled in 135ms (912 modules)
- ✓ Compiled in 127ms (912 modules)
- ✓ Compiled /income in 413ms (871 modules)
- GET /expenses?vscodeBrowserReqId=1754525440618 200 in 80ms
- ✓ Compiled in 232ms (885 modules)
- GET /expenses 200 in 98ms
- ✓ Compiled / in 191ms (877 modules)
- GET /?vscodeBrowserReqId=1754525559686 200 in 251ms
- ✓ Compiled /auth/signin in 153ms (885 modules)
- ✓ Compiled /dashboard in 293ms (893 modules)
- ✓ Compiled in 244ms (898 modules)
- ✓ Compiled in 217ms (898 modules)
- ✓ Compiled in 131ms (898 modules)
- ✓ Compiled in 208ms (898 modules)
- ✓ Compiled in 129ms (898 modules)
- ✓ Compiled in 119ms (898 modules)
- ✓ Compiled in 156ms (898 modules)
- ✓ Compiled in 116ms (898 modules)
- ✓ Compiled in 117ms (898 modules)
- ✓ Compiled in 116ms (898 modules)
- ✓ Compiled in 317ms (898 modules)
- ✓ Compiled in 156ms (898 modules)
- ✓ Compiled in 170ms (898 modules)
- GET /expenses 200 in 99ms
- ✓ Compiled / in 104ms (443 modules)
- GET /?vscodeBrowserReqId=1754526227151 200 in 153ms
- ✓ Compiled /dashboard in 77ms (448 modules)
- ✓ Compiled /_not-found in 86ms (896 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 118ms
- GET /expenses 200 in 46ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
- GET /expenses 200 in 20ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 228ms (898 modules)
- ✓ Compiled in 207ms (898 modules)
- GET /expenses 200 in 101ms
- ✓ Compiled /_not-found in 114ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 156ms
- ✓ Compiled / in 73ms (444 modules)
- GET / 200 in 102ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
- ✓ Compiled /dashboard in 196ms (449 modules)
- ✓ Compiled in 309ms (910 modules)
- ✓ Compiled in 175ms (898 modules)
- ⨯ ./src/components/transactions/inline-editable-table.tsx
-Error: 
-  [31mx[0m the name `timeout` is defined multiple times
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/components/transactions/inline-editable-table.tsx[0m:439:1]
- [2m439[0m |     setPendingSaveRows(prev => new Set(prev).add(rowId));
- [2m440[0m | 
- [2m441[0m |     // Schedule save after 5 seconds
- [2m442[0m |     const timeout = setTimeout(async () => {
-     : [31;1m          ^^^|^^^[0m
-     :              [31;1m`-- [31;1mprevious definition of `timeout` here[0m[0m
- [2m443[0m |       // Check if we have enough data to save (vendor AND amount)
- [2m444[0m |       const hasVendor = transaction?.vendor && transaction.vendor.trim() !== '';
- [2m445[0m |       const hasAmount = transaction?.amount && transaction.amount !== '' && parseInt(transaction.amount.toString()) > 0;
- [2m446[0m |       
- [2m447[0m |       if (hasVendor && hasAmount && onTransactionSave) {
- [2m448[0m |         try {
- [2m449[0m |           const newId = await onTransactionSave(transaction);
- [2m450[0m |           const finalId = newId || rowId;
- [2m451[0m |           
- [2m452[0m |           // Mark as saved (show checkmark)
- [2m453[0m |           setSavedRows(prev => new Set(prev).add(finalId));
- [2m454[0m |           
- [2m455[0m |           // Update original transaction state
- [2m456[0m |           setOriginalTransactions(prev => {
- [2m457[0m |             const newMap = new Map(prev);
- [2m458[0m |             if (newId && newId !== rowId) {
- [2m459[0m |               newMap.delete(rowId);
- [2m460[0m |               newMap.set(newId, { ...transaction, id: newId, isNew: false });
- [2m461[0m |             } else {
- [2m462[0m |               newMap.set(finalId, { ...transaction, isNew: false });
- [2m463[0m |             }
- [2m464[0m |             return newMap;
- [2m465[0m |           });
- [2m466[0m |           
- [2m467[0m |           // Update transaction ID if it changed
- [2m468[0m |           if (newId && newId !== rowId) {
- [2m469[0m |             setTransactions(prev => prev.map(t => 
- [2m470[0m |               t.id === rowId ? { ...t, id: newId, isNew: false } : t
- [2m471[0m |             ));
- [2m472[0m |             if (onTransactionsChange) {
- [2m473[0m |               setTimeout(() => onTransactionsChange(
- [2m474[0m |                 transactions.map(t => t.id === rowId ? { ...t, id: newId, isNew: false } : t)
- [2m475[0m |               ), 0);
- [2m476[0m |             }
- [2m477[0m |           }
- [2m478[0m |         } catch (error) {
- [2m479[0m |           console.error('Error saving transaction:', error);
- [2m480[0m |         }
- [2m481[0m |       }
- [2m482[0m |       
- [2m483[0m |       // Remove from pending saves
- [2m484[0m |       setPendingSaveRows(prev => {
- [2m485[0m |         const newSet = new Set(prev);
- [2m486[0m |         newSet.delete(rowId);
- [2m487[0m |         return newSet;
- [2m488[0m |       });
- [2m489[0m |       
- [2m490[0m |       // Clean up timeout
- [2m491[0m |       setAutoSaveTimeouts(prev => {
- [2m492[0m |         const newMap = new Map(prev);
- [2m493[0m |         newMap.delete(rowId);
- [2m494[0m |         return newMap;
- [2m495[0m |       });
- [2m496[0m |     }, 5000);
- [2m497[0m | 
- [2m498[0m |     const timeout = setTimeout(async () => {
-     : [33;1m          ^^^|^^^[0m
-     :              [33;1m`-- [33;1m`timeout` redefined here[0m[0m
- [2m499[0m |       console.log('Save timeout triggered for:', rowId);
- [2m500[0m |       console.log('Active rows:', Array.from(activeRows));
- [2m501[0m |       console.log('Row is active?', activeRows.has(rowId));
-     `----
-
-Import trace for requested module:
-./src/components/transactions/inline-editable-table.tsx
-./src/app/expenses/page.tsx
- ✓ Compiled in 391ms (898 modules)
- ✓ Compiled in 181ms (898 modules)
- GET /expenses 200 in 80ms
- ✓ Compiled /_not-found in 197ms (887 modules)
+ ✓ Ready in 942ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1662ms (681 modules)
+ GET / 200 in 1757ms
+ ✓ Compiled in 89ms (328 modules)
+ ○ Compiling /import ...
+ ✓ Compiled /import in 896ms (877 modules)
+ GET /import 200 in 1014ms
+ ✓ Compiled in 77ms (441 modules)
+ ✓ Compiled in 65ms (441 modules)
+ ✓ Compiled in 80ms (877 modules)
+ ✓ Compiled /test-import in 91ms (885 modules)
+ GET /test-import 200 in 151ms
+ GET / 200 in 25ms
+ ✓ Compiled /_not-found in 214ms (786 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 241ms
+ ✓ Compiled /dashboard in 195ms (803 modules)
+ ✓ Compiled /expenses in 166ms (889 modules)
+ ✓ Compiled /import in 71ms (472 modules)
+ GET /import-test 404 in 44ms
+ ✓ Compiled /test-import in 85ms (477 modules)
+ GET /test-import 200 in 118ms
+ ✓ Compiled /income in 246ms (922 modules)
+ ✓ Compiled /expenses in 78ms (477 modules)
+ ✓ Compiled /_not-found in 191ms (930 modules)
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 262ms
- ✓ Compiled in 156ms (901 modules)
- ✓ Compiled in 150ms (901 modules)
- GET /expenses 200 in 62ms
+ GET /import 200 in 93ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 17ms
- ⨯ ./src/components/transactions/inline-editable-table.tsx
-Error: 
-  [31mx[0m Expected a semicolon
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/components/transactions/inline-editable-table.tsx[0m:543:1]
- [2m543[0m |           if (savedRows.has(id)) {
- [2m544[0m |             console.log('🧹 Clearing saved state for:', id);
- [2m545[0m |             setSavedRows(current => {
- [2m546[0m |               const newSet = current);
-     : [31;1m                                    ^[0m
- [2m547[0m |               newSet.delete(id);
- [2m548[0m |               return newSet;
- [2m549[0m |             });
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/components/transactions/inline-editable-table.tsx
-./src/app/expenses/page.tsx
- ✓ Compiled in 161ms (898 modules)
- GET /expenses 200 in 96ms
- ✓ Compiled /_not-found in 99ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 151ms
- ✓ Compiled in 153ms (901 modules)
- ✓ Compiled in 127ms (898 modules)
- ✓ Compiled in 143ms (898 modules)
- ✓ Compiled in 156ms (898 modules)
- GET /expenses 200 in 38ms
- ✓ Compiled /_not-found in 104ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 129ms
- GET /expenses 200 in 29ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 22ms
- ✓ Compiled in 244ms (898 modules)
- ✓ Compiled in 130ms (898 modules)
- ✓ Compiled in 153ms (898 modules)
- GET /expenses 200 in 99ms
- ✓ Compiled /_not-found in 111ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 135ms
- ✓ Compiled / in 106ms (444 modules)
- GET / 200 in 131ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 10ms
- ✓ Compiled /dashboard in 65ms (449 modules)
- GET /expenses 200 in 98ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 17ms
- ✓ Compiled in 261ms (898 modules)
- ✓ Compiled in 366ms (898 modules)
- GET /expenses 200 in 100ms
- ✓ Compiled /_not-found in 120ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 168ms
- ✓ Compiled / in 68ms (444 modules)
- GET / 200 in 97ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 16ms
+ GET /import 200 in 16ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled /dashboard in 115ms (449 modules)
- ✓ Compiled in 245ms (898 modules)
- ✓ Compiled in 264ms (898 modules)
- GET /expenses 200 in 86ms
- ✓ Compiled /_not-found in 116ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 164ms
- ✓ Compiled / in 78ms (444 modules)
- GET / 200 in 134ms
+ GET /test-import 200 in 23ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
- ✓ Compiled /dashboard in 130ms (449 modules)
- ✓ Compiled in 420ms (898 modules)
+ GET /import 200 in 26ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 21ms
+ ✓ Compiled in 449ms (941 modules)
+ ✓ Compiled in 178ms (941 modules)
+ ✓ Compiled in 259ms (941 modules)
+ GET /import 200 in 95ms
+ ✓ Compiled in 73ms (464 modules)
+ ✓ Compiled in 210ms (941 modules)
+ GET /import 200 in 66ms
+ GET /import 200 in 17ms
+ ✓ Compiled /_not-found in 362ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 425ms
+ ✓ Compiled in 308ms (941 modules)
+ GET /import 200 in 121ms
+ ✓ Compiled /_not-found in 113ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 144ms
+ ✓ Compiled in 248ms (941 modules)
+ ✓ Compiled in 236ms (941 modules)
+ ✓ Compiled in 133ms (941 modules)
+ GET /import 200 in 124ms
+ ✓ Compiled /_not-found in 147ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 198ms
+ GET /dashboard 200 in 28ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 20ms
+ ✓ Compiled in 263ms (941 modules)
+ ✓ Compiled in 136ms (941 modules)
+ ✓ Compiled in 184ms (941 modules)
+ GET /import 200 in 129ms
+ ✓ Compiled /_not-found in 213ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 261ms
+ GET /dashboard 200 in 26ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 16ms
+ ✓ Compiled in 277ms (941 modules)
+ ✓ Compiled in 229ms (941 modules)
+ ✓ Compiled in 352ms (941 modules)
+ ✓ Compiled in 175ms (941 modules)
+ GET /import 200 in 112ms
+ ✓ Compiled /_not-found in 251ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 297ms
+ ✓ Compiled in 180ms (944 modules)
+ ✓ Compiled in 170ms (944 modules)
+ ✓ Compiled in 177ms (944 modules)
+ GET /import 200 in 81ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
+ ✓ Compiled /api/parse-transactions in 137ms (509 modules)
+ POST /api/parse-transactions 200 in 5478ms
+ POST /api/parse-transactions 200 in 5172ms
+ ✓ Compiled in 410ms (941 modules)
+ ✓ Compiled in 181ms (941 modules)
  GET /expenses 200 in 100ms
- ✓ Compiled /_not-found in 252ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 307ms
- GET /expenses 200 in 48ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 16ms
- ✓ Compiled in 249ms (898 modules)
- GET /expenses 200 in 27ms
- ✓ Compiled /_not-found in 101ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 127ms
- ✓ Compiled / in 100ms (444 modules)
- GET / 200 in 125ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled /dashboard in 105ms (449 modules)
- GET /expenses 200 in 34ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 18ms
- GET /expenses 200 in 20ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled in 239ms (898 modules)
- ✓ Compiled in 332ms (898 modules)
- GET /expenses 200 in 106ms
- ✓ Compiled /_not-found in 92ms (887 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 141ms
- ✓ Compiled / in 74ms (444 modules)
- GET / 200 in 103ms
+ ✓ Compiled /_not-found in 124ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 174ms
+ GET /expenses 200 in 42ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 17ms
- ✓ Compiled /dashboard in 129ms (449 modules)
- GET /expenses 200 in 58ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 282ms (903 modules)
- ✓ Compiled in 150ms (903 modules)
- GET /expenses 200 in 41ms
- ✓ Compiled /_not-found in 107ms (892 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 149ms
- ✓ Compiled in 130ms (906 modules)
- GET /expenses 200 in 40ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
- ✓ Compiled in 275ms (906 modules)
- ✓ Compiled in 229ms (903 modules)
- GET /expenses 200 in 96ms
- ✓ Compiled /_not-found in 84ms (892 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 110ms
- GET /expenses 200 in 44ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 18ms
- GET /expenses 200 in 19ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled in 276ms (903 modules)
- GET /expenses 200 in 35ms
- ✓ Compiled /_not-found in 129ms (892 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 156ms
- GET /expenses 200 in 30ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 16ms
- ✓ Compiled in 106ms (459 modules)
- ✓ Compiled in 185ms (903 modules)
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /expenses 200 in 47ms
- ✓ Compiled /_not-found in 92ms (892 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 115ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 122ms (906 modules)
- GET /expenses 200 in 89ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 121ms (906 modules)
- GET /expenses 200 in 16ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 138ms (906 modules)
- GET /expenses 200 in 19ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 139ms (906 modules)
- GET /expenses 200 in 21ms
+ GET /dashboard 200 in 21ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
- ✓ Compiled in 127ms (906 modules)
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /expenses 200 in 24ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 166ms (906 modules)
- GET /expenses 200 in 19ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 425ms (912 modules)
- GET /expenses 200 in 48ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 151ms (912 modules)
- GET /expenses 200 in 62ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
- GET /dashboard 200 in 27ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 243ms (909 modules)
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /expenses 200 in 83ms
- ✓ Compiled /_not-found in 93ms (898 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 124ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 133ms (912 modules)
- GET /expenses 200 in 94ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled in 129ms (912 modules)
- GET /expenses 200 in 25ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 16ms
- ✓ Compiled in 114ms (912 modules)
- GET /expenses 200 in 20ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 124ms (912 modules)
+ ✓ Compiled /api/parse-transactions in 119ms (509 modules)
+ POST /api/parse-transactions 200 in 16075ms
+ ✓ Compiled in 261ms (941 modules)
+ ✓ Compiled in 282ms (941 modules)
+ GET /import 200 in 125ms
+ ✓ Compiled /_not-found in 122ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 188ms
+ GET /import 200 in 72ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
+ ✓ Compiled /api/parse-transactions in 81ms (509 modules)
+ POST /api/parse-transactions 200 in 12248ms
+ GET /import 200 in 59ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
+ POST /api/parse-transactions 200 in 1814ms
+ GET /import 200 in 19ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
+ POST /api/parse-transactions 200 in 1496ms
  GET /expenses 200 in 23ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
+ GET /import 200 in 17ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
+ POST /api/parse-transactions 200 in 2645ms
+ ✓ Compiled in 288ms (975 modules)
+ GET /import 200 in 61ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 21ms
+ GET /import 200 in 21ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
+ POST /api/parse-transactions 200 in 996ms
+ GET /import 200 in 29ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 25ms
+ POST /api/parse-transactions 200 in 5261ms
+ ✓ Compiled in 328ms (941 modules)
+ ✓ Compiled in 302ms (927 modules)
+ ✓ Compiled in 111ms (927 modules)
+ GET /import 200 in 131ms
+ ✓ Compiled /_not-found in 138ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 183ms
+ ✓ Compiled in 128ms (930 modules)
+ GET /import 200 in 79ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
+ ✓ Compiled in 425ms (944 modules)
+ ✓ Compiled /api/parse-transactions in 159ms (509 modules)
+ POST /api/parse-transactions 200 in 4449ms
+ POST /api/parse-transactions 200 in 5661ms
+ ✓ Compiled in 310ms (927 modules)
+ GET /import 200 in 184ms
+ ✓ Compiled /_not-found in 311ms (930 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 366ms
+ ✓ Compiled /api/parse-transactions in 118ms (509 modules)
+🤖 Processing AI transaction 1: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '98707c20-035a-4a79-a8da-a27777c3dc4a',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 2: {
+  date: '2023-03',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 2: {
+  id: 'bddc9b47-7d06-4dcc-a3ae-2902708f316e',
+  date: '2023-03-01',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Dominion,$299.00 ,🪪 Insurance'
+}
+🤖 Processing AI transaction 3: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [ 'possible_duplicate' ]
+}
+✅ Processed transaction 3: {
+  id: '2d9f8d0c-4359-4863-8db8-117824d1bb30',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 4: {
+  date: '2023-03',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 4: {
+  id: '81f48005-41e3-4186-b2bc-d6ee0206451b',
+  date: '2023-03-01',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Telus,$152.00 ,💡Utilities'
+}
+🤖 Processing AI transaction 5: {
+  date: '2023-03',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 5: {
+  id: '56092abc-023e-43be-bf0d-0e7c7792704a',
+  date: '2023-03-01',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Enbridge,$28.00 ,💡Utilities'
+}
+ POST /api/parse-transactions 200 in 7033ms
+ ✓ Compiled in 429ms (941 modules)
+ GET /dashboard 200 in 357ms
+ ✓ Compiled /api/parse-transactions in 265ms (508 modules)
+🤖 Processing AI transaction 1: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'bf65ca91-2edc-4516-b6b6-7479136a03f5',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 2: {
+  date: '2023-03',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 2: {
+  id: 'd340c1da-ff0a-4519-b4a8-7b5f249d22fc',
+  date: '2023-03-01',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Dominion,$299.00 ,🪪 Insurance'
+}
+🤖 Processing AI transaction 3: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [ 'possible_duplicate' ]
+}
+✅ Processed transaction 3: {
+  id: 'b9febf81-3e8d-4970-8aa9-228096f83779',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 4: {
+  date: '2023-03',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 4: {
+  id: 'bcb43679-c636-4aeb-9fdc-33b819337578',
+  date: '2023-03-01',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Telus,$152.00 ,💡Utilities'
+}
+🤖 Processing AI transaction 5: {
+  date: '2023-03',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 5: {
+  id: 'd11796cc-47fe-443d-8231-2afb031770f0',
+  date: '2023-03-01',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Enbridge,$28.00 ,💡Utilities'
+}
+ POST /api/parse-transactions 200 in 5327ms
+ ✓ Compiled /_not-found in 189ms (961 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 243ms
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: '',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '9e6531aa-be9d-4886-931e-af61a6cc2907',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 2115ms
+ ✓ Compiled in 466ms (941 modules)
+ ✓ Compiled in 190ms (941 modules)
+ ✓ Compiled in 145ms (941 modules)
+ ✓ Compiled in 178ms (941 modules)
+ ✓ Compiled in 182ms (941 modules)
+ ✓ Compiled in 204ms (941 modules)
+ ✓ Compiled in 378ms (939 modules)
+ ✓ Compiled in 188ms (935 modules)
+ ✓ Compiled in 213ms (935 modules)
+ ✓ Compiled /api/parse-transactions in 287ms (505 modules)
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: '',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'de45ea21-efcf-4aee-b18a-2913718b9cc9',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 2118ms
+ GET /import 200 in 150ms
+ ✓ Compiled /_not-found in 197ms (955 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 247ms
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'c62ff972-1171-427f-952b-c327bd14cfe9',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 1763ms
+ GET /import 200 in 52ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
+ GET /dashboard 200 in 21ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: '',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'd74144c0-e473-4799-903f-31ec7634b4a8',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 1643ms
  ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
- ✓ Compiled in 126ms (912 modules)
+ ✓ Compiled in 586ms (969 modules)
+ GET /import 200 in 320ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: '',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '32a57f7f-6f73-453c-96db-6775d31873a4',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 1935ms
+🤖 Processing AI transaction 1: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'c930b673-9352-4824-a728-2b9e893de843',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 2: {
+  date: '2023-03',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 2: {
+  id: '2a886f03-a06b-4b34-a359-475b451acf69',
+  date: '2023-03-01',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: '🪪 Insurance',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Dominion,$299.00 ,🪪 Insurance'
+}
+🤖 Processing AI transaction 3: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [ 'possible_duplicate' ]
+}
+✅ Processed transaction 3: {
+  id: 'ac12dc9e-1d01-49c2-8957-36d477f000f7',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 4: {
+  date: '2023-03',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 4: {
+  id: '8a95533c-5dc6-43eb-a47f-f1647fe90c76',
+  date: '2023-03-01',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Telus,$152.00 ,💡Utilities'
+}
+🤖 Processing AI transaction 5: {
+  date: '2023-03',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 5: {
+  id: '23ffecb7-b9a3-484f-8aef-076799210d7b',
+  date: '2023-03-01',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: '💡Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Enbridge,$28.00 ,💡Utilities'
+}
+ POST /api/parse-transactions 200 in 4655ms
  GET /expenses 200 in 22ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
- ✓ Compiled in 117ms (912 modules)
- GET /expenses 200 in 19ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 112ms (912 modules)
- GET /expenses 200 in 19ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 17ms
- ✓ Compiled in 117ms (912 modules)
- GET /expenses 200 in 19ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled in 115ms (912 modules)
- GET /expenses 200 in 19ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 123ms (912 modules)
- GET /expenses 200 in 94ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 115ms (912 modules)
- GET /expenses 200 in 108ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 40ms
- ✓ Compiled in 115ms (912 modules)
- GET /expenses 200 in 19ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
- ✓ Compiled in 272ms (909 modules)
- ✓ Compiled in 203ms (909 modules)
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- ○ Compiling /_error ...
- GET /expenses 500 in 2ms
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- GET /.well-known/appspecific/com.chrome.devtools.json 500 in 139ms
- ✓ Compiled /_not-found in 406ms (1125 modules)
- GET /_next/static/webpack/a3e583a7a92a0580.webpack.hot-update.json 500 in 407ms
- ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /expenses 200 in 32ms
- GET /expenses 200 in 11ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- ✓ Compiled in 185ms (1139 modules)
- ✓ Compiled in 254ms (1134 modules)
- ✓ Compiled in 133ms (1134 modules)
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6 relative">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6 relative">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- GET /expenses 500 in 3ms
- ⨯ ./src/app/expenses/page.tsx
-Error: 
-  [31mx[0m Unexpected token `div`. Expected jsx identifier
-     ,-[[36;1;4m/Users/marvinsanchez/projects/budget-bop/src/app/expenses/page.tsx[0m:456:1]
- [2m456[0m |   }
- [2m457[0m | 
- [2m458[0m |   return (
- [2m459[0m |     <div className="space-y-6 relative">
-     : [31;1m     ^^^[0m
- [2m460[0m |       {/* Header with Month Navigation */}
- [2m461[0m |       <div className="flex items-center justify-between">
- [2m462[0m |         <div>
-     `----
-
-Caused by:
-    Syntax Error
-
-Import trace for requested module:
-./src/app/expenses/page.tsx
- GET /.well-known/appspecific/com.chrome.devtools.json 500 in 204ms
- ○ Compiling /_not-found ...
- ✓ Compiled /_not-found in 202ms (1125 modules)
- GET /_next/static/webpack/a3e583a7a92a0580.webpack.hot-update.json 404 in 245ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /expenses 200 in 53ms
- GET /expenses 200 in 9ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 9ms
- ✓ Compiled in 285ms (1136 modules)
- ✓ Compiled in 208ms (1136 modules)
- ✓ Compiled in 353ms (1136 modules)
- ✓ Compiled in 132ms (1136 modules)
- ✓ Compiled in 288ms (1136 modules)
- ✓ Compiled in 137ms (1136 modules)
- ✓ Compiled in 431ms (1136 modules)
- ✓ Compiled in 471ms (1136 modules)
- ✓ Compiled in 202ms (1136 modules)
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- GET /expenses 200 in 123ms
- ✓ Compiled /_not-found in 199ms (1125 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 253ms
- ✓ Compiled in 163ms (1141 modules)
- GET /dashboard 200 in 62ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 26ms
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ✓ Compiled in 502ms (1134 modules)
- GET /income 200 in 198ms
- ✓ Compiled /_not-found in 113ms (1123 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 139ms
- ✓ Compiled in 132ms (1137 modules)
- ✓ Compiled in 154ms (1137 modules)
- ✓ Compiled in 122ms (1137 modules)
- ✓ Compiled in 126ms (1137 modules)
- ✓ Compiled in 142ms (1137 modules)
- ✓ Compiled in 153ms (1134 modules)
- ✓ Compiled in 496ms (1134 modules)
- ✓ Compiled in 543ms (1134 modules)
- GET /income 200 in 96ms
- ✓ Compiled /_not-found in 132ms (1123 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 167ms
- GET /dashboard 200 in 14ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
- GET /expenses 200 in 45ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 19ms
- GET /expenses 200 in 20ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 15ms
- GET /expenses 200 in 18ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 21ms
- GET /expenses 200 in 20ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 12ms
- GET /dashboard 200 in 18ms
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 11ms
- ✓ Compiled in 447ms (1134 modules)
- ✓ Compiled in 130ms (1134 modules)
- GET /expenses 200 in 142ms
- ✓ Compiled /_not-found in 473ms (1123 modules)
- GET /.well-known/appspecific/com.chrome.devtools.json 404 in 560ms
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: '',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '7f295a56-80a0-4899-824b-d5b41a6ef120',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 12408ms
+ ✓ Compiled in 547ms (935 modules)
+ ✓ Compiled /settings in 301ms (929 modules)
+ GET /expenses 200 in 76ms
+ ✓ Compiled /_not-found in 116ms (932 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 156ms
+ ✓ Compiled /api/parse-transactions in 63ms (511 modules)
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: 'Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'b6d4a457-bebc-4e24-b397-2477e0c228f7',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: 'Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 3971ms
+ ✓ Compiled in 373ms (938 modules)
+ ✓ Compiled /api/parse-transactions in 63ms (505 modules)
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '1ac04410-d3eb-4ca4-9462-778a49517839',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 1849ms
+ ✓ Compiled in 414ms (938 modules)
+ GET /expenses 200 in 72ms
+ ✓ Compiled /_not-found in 193ms (927 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 249ms
+ ✓ Compiled /api/parse-transactions in 72ms (506 modules)
+🤖 Processing AI transaction 1: {
+  date: '2023-03',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: 'Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: '342d9f31-b674-45e0-bd56-845639c521bb',
+  date: '2023-03-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Mortgage payment',
+  category: 'Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+🤖 Processing AI transaction 2: {
+  date: '2023-03',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: 'Insurance',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 2: {
+  id: 'a28c84f3-e103-4135-8298-b88f5fbb8878',
+  date: '2023-03-01',
+  vendor: 'Dominion',
+  originalVendor: 'Dominion',
+  amount: 299,
+  description: 'Insurance payment',
+  category: 'Insurance',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Dominion,$299.00 ,🪪 Insurance'
+}
+🤖 Processing AI transaction 3: {
+  date: '2023-03',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: 'Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 3: {
+  id: 'e7b77d04-dc17-42f3-8f14-064e9c387b3a',
+  date: '2023-03-01',
+  vendor: 'Telus',
+  originalVendor: 'Telus',
+  amount: 152,
+  description: 'Utilities payment',
+  category: 'Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Telus,$152.00 ,💡Utilities'
+}
+🤖 Processing AI transaction 4: {
+  date: '2023-03',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: 'Utilities',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 4: {
+  id: 'bdc042d5-2829-48f0-ad24-e89d1c5f396f',
+  date: '2023-03-01',
+  vendor: 'Enbridge',
+  originalVendor: 'Enbridge',
+  amount: 28,
+  description: 'Utilities payment',
+  category: 'Utilities',
+  confidence: 0.95,
+  issues: [],
+  rawText: '3/2023,Enbridge,$28.00 ,💡Utilities'
+}
+ POST /api/parse-transactions 200 in 3865ms
+ GET /expenses 200 in 54ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 18ms
+ ✓ Compiled /settings in 219ms (479 modules)
+ GET /dashboard 200 in 43ms
+ GET /dashboard 200 in 25ms
