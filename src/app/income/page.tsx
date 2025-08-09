@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SimpleEditableTable, EditableTransaction } from '@/components/transactions/simple-editable-table';
@@ -8,15 +8,57 @@ import { supabase, Transaction } from '@/lib/supabase';
 import { useAuth } from '@/components/providers';
 import { HashedTransaction } from '@/lib/transaction-hash';
 import { Plus, TrendingUp, DollarSign, Calendar, PieChart, ChevronLeft, ChevronRight, Save, Loader2, Download } from 'lucide-react';
+import { PeriodTabs, ViewPeriod } from '@/components/ui/period-tabs';
+import { MonthPicker } from '@/components/ui/month-picker';
+import { YearPicker } from '@/components/ui/year-picker';
 import { Input } from '@/components/ui/input';
 
 export default function IncomePage() {
   const { user } = useAuth();
+
+  // Helper function to determine default date for empty rows based on view period
+  const getDefaultDateForEmptyRows = () => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.toISOString().substring(0, 7); // YYYY-MM
+    
+    switch (viewPeriod) {
+      case 'month':
+        // Use the selected month
+        return selectedMonth;
+      case 'year':
+        // Use current month within selected year, or January if current year is different
+        const currentYear = currentDate.getFullYear().toString();
+        if (currentYear === selectedYear) {
+          return `${selectedYear}-${currentMonth.substring(5)}`; // selectedYear + current month
+        } else {
+          return `${selectedYear}-01`; // Default to January of selected year
+        }
+      case 'all':
+      default:
+        // Use actual current date for "All" view
+        return currentMonth;
+    }
+  };
+
+  // Helper function to determine number of empty rows based on view period
+  const getEmptyRowCount = () => {
+    switch (viewPeriod) {
+      case 'month':
+        return 10; // Good for focused monthly data entry
+      case 'year':
+        return 5;  // Less clutter for broader view
+      case 'all':
+      default:
+        return 3;  // Minimal since it's primarily for viewing
+    }
+  };
   const [transactions, setTransactions] = useState<EditableTransaction[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [accounts, setAccounts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM format
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [viewPeriod, setViewPeriod] = useState<ViewPeriod>('month');
   
   // Month-specific save state
   const [unsavedRows, setUnsavedRows] = useState<Set<string>>(new Set());
@@ -38,27 +80,15 @@ export default function IncomePage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [unsavedRows.size]);
 
-  useEffect(() => {
-    if (user) {
-      loadIncomeData();
-    }
-  }, [user, selectedMonth]);
-
-  const loadIncomeData = async () => {
+  const loadIncomeData = useCallback(async () => {
     try {
       // Reset save state for new month
       setUnsavedRows(new Set());
       setSavedRows(new Set());
       setOriginalTransactions(new Map());
 
-      // Load income transactions for selected month with category and account names
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const startDate = `${selectedMonth}-01`;
-      // Get the last day of the month properly
-      const lastDay = new Date(year, month, 0).getDate();
-      const endDate = `${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
-      
-      const { data: transactionData } = await supabase
+      // Load income transactions based on view period
+      let query = supabase
         .from('transactions')
         .select(`
           *,
@@ -67,9 +97,32 @@ export default function IncomePage() {
         `)
         .eq('user_id', user?.id)
         .eq('is_income', true)
-        .gte('transaction_date', startDate)
-        .lte('transaction_date', endDate)
         .order('created_at', { ascending: true });
+
+      // Apply date filtering based on view period
+      if (viewPeriod === 'month') {
+        const [year, month] = selectedMonth.split('-').map(Number);
+        const startDate = `${selectedMonth}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
+        console.log('Loading income for month:', selectedMonth, 'Date range:', startDate, 'to', endDate);
+        query = query.gte('transaction_date', startDate).lte('transaction_date', endDate);
+      } else if (viewPeriod === 'year') {
+        const startDate = `${selectedYear}-01-01`;
+        const endDate = `${selectedYear}-12-31`;
+        console.log('Loading income for year:', selectedYear, 'Date range:', startDate, 'to', endDate);
+        query = query.gte('transaction_date', startDate).lte('transaction_date', endDate);
+      } else {
+        console.log('Loading all income (no date filter)');
+      }
+      
+      const { data: transactionData, error } = await query;
+
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
+
 
       // Load categories (income categories)
       const { data: categoryData } = await supabase
@@ -96,12 +149,13 @@ export default function IncomePage() {
         isNew: false
       }));
 
-      // Ensure minimum 10 rows per month
-      const minRows = 10;
+      // Ensure appropriate number of empty rows with contextual default dates
+      const minRows = getEmptyRowCount();
       const emptyRowsNeeded = Math.max(0, minRows - editableTransactions.length);
+      const defaultDate = getDefaultDateForEmptyRows();
       const emptyRows: EditableTransaction[] = Array.from({ length: emptyRowsNeeded }, (_, index) => ({
-        id: `empty-${selectedMonth}-${index}-${Date.now()}`,
-        date: selectedMonth,
+        id: `empty-${viewPeriod}-${index}-${Date.now()}`,
+        date: defaultDate,
         vendor: '',
         amount: '',
         category: '',
@@ -133,7 +187,13 @@ export default function IncomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, viewPeriod, selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    if (user) {
+      loadIncomeData();
+    }
+  }, [user, loadIncomeData]);
 
   // Check if transaction has changed from original state
   const hasTransactionChanged = (transaction: EditableTransaction): boolean => {
@@ -345,6 +405,23 @@ export default function IncomePage() {
     window.location.href = '/import';
   };
 
+  const handlePeriodChange = (newPeriod: ViewPeriod) => {
+    // Check for unsaved changes
+    if (unsavedRows.size > 0) {
+      const currentPeriodLabel = viewPeriod === 'month' ? formatMonthDisplay(selectedMonth) :
+                                viewPeriod === 'year' ? selectedYear :
+                                'All Time';
+      const confirmed = window.confirm(
+        `You have ${unsavedRows.size} unsaved changes in ${currentPeriodLabel}. ` +
+        'These changes will be lost if you change the view period. Continue anyway?'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+    setViewPeriod(newPeriod);
+  };
+
   const navigateMonth = (direction: 'prev' | 'next') => {
     // Check for unsaved changes
     if (unsavedRows.size > 0) {
@@ -379,6 +456,40 @@ export default function IncomePage() {
     setSelectedMonth(newDate);
   };
 
+  const navigateYear = (direction: 'prev' | 'next') => {
+    // Check for unsaved changes
+    if (unsavedRows.size > 0) {
+      const confirmed = window.confirm(
+        `You have ${unsavedRows.size} unsaved changes in ${selectedYear}. ` +
+        'These changes will be lost if you navigate away. Continue anyway?'
+      );
+      if (!confirmed) {
+        return; // Stay on current year
+      }
+    }
+
+    const currentYear = parseInt(selectedYear);
+    const newYear = direction === 'prev' ? currentYear - 1 : currentYear + 1;
+    setSelectedYear(newYear.toString());
+  };
+
+  const handleYearInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newYear = e.target.value;
+    
+    // Check for unsaved changes
+    if (unsavedRows.size > 0 && newYear !== selectedYear) {
+      const confirmed = window.confirm(
+        `You have ${unsavedRows.size} unsaved changes in ${selectedYear}. ` +
+        'These changes will be lost if you navigate away. Continue anyway?'
+      );
+      if (!confirmed) {
+        return; // Keep current year
+      }
+    }
+    
+    setSelectedYear(newYear);
+  };
+
   const handleMonthInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMonth = e.target.value;
     
@@ -397,9 +508,10 @@ export default function IncomePage() {
   };
 
   const handleAddRow = () => {
+    const defaultDate = getDefaultDateForEmptyRows();
     const newRow: EditableTransaction = {
       id: `new-${Date.now()}-${Math.random()}`,
-      date: selectedMonth,
+      date: defaultDate, // Use contextually appropriate date based on view period
       vendor: '',
       amount: '',
       category: '',
@@ -463,7 +575,7 @@ export default function IncomePage() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Header with Month Navigation */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -474,48 +586,119 @@ export default function IncomePage() {
         </div>
       </div>
 
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between py-8 px-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigateMonth('prev')}
-          className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
-        >
-          <ChevronLeft className="h-5 w-5" />
-          Previous
-        </Button>
-        
-        <div className="flex flex-col items-center">
-          <label className="text-sm font-medium text-green-700 mb-2">Viewing Month</label>
-          <div 
-            className="text-4xl font-bold text-green-900 cursor-pointer hover:text-green-700 transition-colors relative"
-            onClick={() => {
-              const input = document.getElementById('income-month-picker') as HTMLInputElement;
-              input?.focus();
-              input?.showPicker?.();
-            }}
-          >
-            {formatMonthDisplay(selectedMonth)}
-            <input
-              id="income-month-picker"
-              type="month"
-              value={selectedMonth}
-              onChange={handleMonthInputChange}
-              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-            />
-          </div>
+      {/* Period Tabs */}
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-center">
+          <PeriodTabs value={viewPeriod} onChange={handlePeriodChange} />
         </div>
         
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigateMonth('next')}
-          className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
-        >
-          Next
-          <ChevronRight className="h-5 w-5" />
-        </Button>
+        {/* Conditional Navigation */}
+        {viewPeriod === 'month' && (
+          <div className="flex items-center justify-between py-8 px-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigateMonth('prev')}
+              className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              Previous
+            </Button>
+            
+            <div className="flex flex-col items-center">
+              <label className="text-sm font-medium text-green-700 mb-2">Viewing Month</label>
+              <div className="text-2xl font-bold text-green-900 mb-2">
+                {formatMonthDisplay(selectedMonth)}
+              </div>
+              <MonthPicker
+                value={selectedMonth}
+                onChange={(value) => {
+                  // Check for unsaved changes before switching
+                  if (unsavedRows.size > 0) {
+                    const confirmed = window.confirm(
+                      `You have ${unsavedRows.size} unsaved changes in ${formatMonthDisplay(selectedMonth)}. ` +
+                      'These changes will be lost if you navigate away. Continue anyway?'
+                    );
+                    if (!confirmed) {
+                      return;
+                    }
+                  }
+                  setSelectedMonth(value);
+                }}
+                buttonClassName="bg-white hover:bg-green-50 border-green-200"
+              />
+            </div>
+            
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigateMonth('next')}
+              className="flex items-center gap-2 bg-white hover:bg-green-50 border-green-200"
+            >
+              Next
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+        
+        {viewPeriod === 'year' && (
+          <div className="flex items-center justify-between py-8 px-8 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg border border-purple-100">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigateYear('prev')}
+              className="flex items-center gap-2 bg-white hover:bg-purple-50 border-purple-200"
+            >
+              <ChevronLeft className="h-5 w-5" />
+              Previous
+            </Button>
+            
+            <div className="flex flex-col items-center">
+              <label className="text-sm font-medium text-purple-700 mb-2">Viewing Year</label>
+              <div className="text-2xl font-bold text-purple-900 mb-2">
+                {selectedYear}
+              </div>
+              <YearPicker
+                value={selectedYear}
+                onChange={(value) => {
+                  // Check for unsaved changes before switching
+                  if (unsavedRows.size > 0) {
+                    const confirmed = window.confirm(
+                      `You have ${unsavedRows.size} unsaved changes in ${selectedYear}. ` +
+                      'These changes will be lost if you navigate away. Continue anyway?'
+                    );
+                    if (!confirmed) {
+                      return;
+                    }
+                  }
+                  setSelectedYear(value);
+                }}
+                className="w-48"
+              />
+            </div>
+            
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigateYear('next')}
+              className="flex items-center gap-2 bg-white hover:bg-purple-50 border-purple-200"
+            >
+              Next
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+        
+        {viewPeriod === 'all' && (
+          <div className="flex items-center justify-center py-8 px-8 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-100">
+            <div className="flex flex-col items-center">
+              <label className="text-sm font-medium text-gray-700 mb-2">Viewing Period</label>
+              <div className="text-4xl font-bold text-gray-900">
+                All Time
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -524,7 +707,10 @@ export default function IncomePage() {
           <CardContent className="flex items-center p-6">
             <DollarSign className="h-8 w-8 text-green-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Month Total</p>
+              <p className="text-sm font-medium text-gray-600">
+                {viewPeriod === 'month' ? 'Month Total' : 
+                 viewPeriod === 'year' ? 'Year Total' : 'All Time Total'}
+              </p>
               <p className="text-2xl font-bold text-green-600">
                 ${totalIncome.toFixed(2)}
               </p>
@@ -604,7 +790,7 @@ export default function IncomePage() {
         onTransactionChange={handleTransactionChange}
         onTransactionDelete={handleTransactionDelete}
         onAddRow={handleAddRow}
-        defaultMonth={selectedMonth}
+        defaultMonth={new Date().toISOString().substring(0, 7)}
         unsavedRows={unsavedRows}
         savedRows={savedRows}
       />

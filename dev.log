@@ -797,3 +797,116 @@
  ✓ Compiled /settings in 219ms (479 modules)
  GET /dashboard 200 in 43ms
  GET /dashboard 200 in 25ms
+ GET /dashboard 200 in 32ms
+ ✓ Compiled in 165ms (464 modules)
+ ✓ Compiled in 314ms (917 modules)
+ ✓ Compiled in 168ms (917 modules)
+ ✓ Compiled in 198ms (917 modules)
+ ✓ Compiled in 167ms (917 modules)
+ ✓ Compiled in 344ms (919 modules)
+ ✓ Compiled in 148ms (919 modules)
+ ✓ Compiled in 181ms (919 modules)
+ ✓ Compiled in 255ms (919 modules)
+ ✓ Compiled in 146ms (919 modules)
+ ✓ Compiled in 140ms (919 modules)
+ ✓ Compiled in 145ms (919 modules)
+ ✓ Compiled in 182ms (919 modules)
+ ✓ Compiled in 198ms (919 modules)
+ GET /expenses 200 in 118ms
+ GET /expenses 200 in 27ms
+ GET /expenses 200 in 21ms
+ ✓ Compiled in 354ms (919 modules)
+ ✓ Compiled in 161ms (919 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /expenses 200 in 124ms
+ ✓ Compiled in 156ms (919 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /expenses 200 in 24ms
+ ✓ Compiled in 161ms (919 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /expenses 200 in 49ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 145ms (919 modules)
+ GET /expenses 200 in 105ms
+ GET /expenses 200 in 24ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 294ms (919 modules)
+ GET /expenses 200 in 239ms
+ ✓ Compiled in 147ms (919 modules)
+ GET /expenses 200 in 42ms
+ GET /expenses 200 in 25ms
+ ✓ Compiled in 291ms (919 modules)
+ ✓ Compiled in 150ms (919 modules)
+ ✓ Compiled in 193ms (919 modules)
+ ✓ Compiled in 177ms (919 modules)
+ ✓ Compiled in 161ms (919 modules)
+ ✓ Compiled in 208ms (919 modules)
+ GET /expenses 200 in 109ms
+ GET /expenses 200 in 39ms
+ ✓ Compiled /import in 360ms (480 modules)
+ ✓ Compiled in 81ms (480 modules)
+ ✓ Compiled in 201ms (465 modules)
+ ✓ Compiled in 130ms (465 modules)
+ ✓ Compiled in 95ms (465 modules)
+ ✓ Compiled in 76ms (465 modules)
+ ✓ Compiled in 310ms (919 modules)
+ ✓ Compiled in 912ms (1764 modules)
+ ✓ Compiled in 277ms (1766 modules)
+ ✓ Compiled in 245ms (1766 modules)
+ ✓ Compiled in 178ms (1766 modules)
+ ✓ Compiled in 180ms (1766 modules)
+ GET /income 200 in 95ms
+ ✓ Compiled in 191ms (889 modules)
+ ✓ Compiled in 435ms (1768 modules)
+ GET /income 200 in 118ms
+ GET /income 200 in 20ms
+ ✓ Compiled in 201ms (890 modules)
+ ✓ Compiled in 271ms (1770 modules)
+ ✓ Compiled in 163ms (1009 modules)
+ GET /income 200 in 116ms
+ ✓ Compiled /import in 411ms (525 modules)
+ ✓ Compiled /api/parse-transactions in 184ms (556 modules)
+🤖 Processing AI transaction 1: {
+  date: '2025-08',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: []
+}
+✅ Processed transaction 1: {
+  id: 'a1847814-0cb4-4e48-a165-eb62ffb4f580',
+  date: '2025-08-01',
+  vendor: 'Mortgage',
+  originalVendor: 'Mortgage',
+  amount: 1406,
+  description: 'Transaction description',
+  category: '🏦 Mortgage',
+  confidence: 0.95,
+  issues: [],
+  rawText: '8/2025,Mortgage,"$1,406.00 ",🏦 Mortgage'
+}
+ POST /api/parse-transactions 200 in 1635ms
+ ✓ Compiled in 275ms (1061 modules)
+ ✓ Compiled in 151ms (1061 modules)
+ ✓ Compiled in 149ms (1061 modules)
+ ✓ Compiled in 142ms (1061 modules)
+ GET /import 200 in 129ms
+ ✓ Compiled /_not-found in 353ms (1019 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 420ms
+ GET /expenses 200 in 65ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 14ms
+ GET /expenses 200 in 19ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 13ms
+ ✓ Compiled in 458ms (1030 modules)
+ ✓ Compiled in 146ms (1030 modules)
+ ✓ Compiled in 166ms (1030 modules)
+ ✓ Compiled in 147ms (1030 modules)
+ ✓ Compiled in 498ms (1030 modules)
+ ✓ Compiled in 162ms (1030 modules)
+ GET /expenses 200 in 118ms
+ ✓ Compiled /_not-found in 204ms (1019 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 252ms
+ GET /expenses 200 in 52ms

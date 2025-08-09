@@ -92,3 +92,8 @@ HOST=localhost nohup npm run dev > dev.log 2>&1 &
 - Clear user control over when data is saved
 - Consistent state management across month navigation
 - Much easier to debug and maintain
+
+
+## Github 
+- Never set Claude as co-author
+- Never mention Claude in commit notes/descriptions

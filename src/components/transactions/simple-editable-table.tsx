@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Filter, X, Check, Trash2, Plus, ChevronDown, Loader2 } from 'lucide-react';
+import { TableDatePicker } from '@/components/ui/table-date-picker';
 
 export interface EditableTransaction {
   id: string;
@@ -348,11 +349,10 @@ export function SimpleEditableTable({
                 {filteredTransactions().map((transaction) => (
                   <TableRow key={transaction.id} className="hover:bg-gray-50/50">
                     <TableCell className="p-1">
-                      <Input
-                        type="month"
+                      <TableDatePicker
                         value={transaction.date}
-                        onChange={(e) => onTransactionChange(transaction.id, 'date', e.target.value)}
-                        className="border-0 focus:ring-0 focus:outline-none bg-transparent h-8 px-2 shadow-none"
+                        onChange={(value) => onTransactionChange(transaction.id, 'date', value)}
+                        className="border-0 focus:ring-0 focus:outline-none bg-transparent shadow-none"
                       />
                     </TableCell>
                     <TableCell className="p-1">
